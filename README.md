@@ -1,35 +1,73 @@
-# CookCalc API 🍳
-A lightweight Python API that handles recipe scaling and food cost (COGS) calculations using FastAPI and SQLModel.
+# 🍳 calCOOKlator
 
-# Why this exists?
-Scaling a recipe for 4 people up to 150 for a catering order sounds simple on paper, but it quickly turns messy in a real kitchen. Texting a line cook to use "16 tablespoons" of an ingredient doesn't mean anything useful, and trying to recalculate profit margins by hand over a Excel sheet is a massive waste of time. 
+An API (with a simple web UI on top) for scaling recipes to a new serving size, converting quantities into kitchen-friendly units and calculating food cost per serving.
+ 
+Scaling a recipe for 4 people up to 150 for a catering order gets messy fast: 16 tablespoons means nothing to a line cook, and recalculating margins by hand is slow and error-prone. calCOOKlator handles both.
 
-I built this API to solve that exact back-of-house bottleneck. It automates the scale math, converts the numbers into actual kitchen-friendly tools (like cups or kilograms instead of ugly floats), and calculates the real food cost per serving.
+---
+
+## 🚀 Live Demo
+ 
+- **Try it:** `<your-render-url>/static/index.html`
+- **API docs:** `<your-render-url>/docs`
+
+## About This Project
+ 
+A portfolio project covering API design, data modeling, and edge cases that actually matter (unit conversion, rounding, cost accuracy) plus a frontend layer to show the full path from backend logic to a usable tool.
+
+## Features
+ 
+- Scales any recipe to a target serving count
+- Converts scaled quantities into sensible kitchen units (16 tbsp → 1 cup), not raw decimals
+- Rounds to kitchen-friendly fractions (1/8, 1/4, 1/3, 1/2, 2/3, 3/4)
+- Costs off unrounded values so error doesn't compound across ingredients
+
+## Tech Stack
+ 
+FastAPI + SQLModel (SQLite for dev, swappable to Postgres) + Pydantic for validation. Deployed on Render.
+
+---
+## Architecture
+ 
+```
+/app
+  /models     -> database table definitions
+  /schemas    -> API request/response shapes
+  /routers    -> endpoints
+  /services   -> scaling, conversion, and costing logic
+database.py
+main.py
+```
+--- 
+
+## Data Model
+ 
+**recipes** — id, name, base_servings
+**ingredients** — id, recipe_id (FK), name, quantity, unit, unit_type, cost_per_unit
+**unit_conversions** — id, unit_type, unit_name, base_factor
+ 
+Units convert to a common base (ml for volume, g for weight) before scaling or costing, then convert back to the most kitchen-friendly unit for display.
+ 
+## API Endpoints
+ 
+| Method | Endpoint | Description |
+|---|---|---|
+| GET  | /recipes/ | List all recipes |
+| POST | /recipes/scale | Scale a recipe to a new serving size |
+| POST | /recipes/cost | Get total and per-serving cost |
+| POST | /recipes/scale-and-cost | Both combined |
+ 
+Full schemas at `/docs`.
 
 
 ## Known Limitations & Design Decisions
-
-**Volume-to-weight conversion is out of scope.**
-Converting between volume and weight units (e.g. cups of flour → grams) 
-requires ingredient-specific density data, since flour, sugar, and water 
-all have different densities. This API only converts within a unit 
-family (volume↔volume, weight↔weight). Adding a density lookup table 
-per ingredient is the natural next step if this were extended.
-
-**Unit conversions are stored as data, not code.**
-The `unit_conversions` table means adding a new unit (e.g. "fl oz") is 
-a data insert, not a redeploy. Tradeoff: less type-safety than an enum, 
-more flexibility.
-
-**Rounding uses a fixed set of "kitchen-friendly" fractions** 
-(1/8, 1/4, 1/3, 1/2, 2/3, 3/4). This covers standard US measuring tools 
-but doesn't attempt metric-friendly rounding (e.g. nearest 5g) — a 
-locale-aware rounding strategy would be needed for a production version.
-
-**No ingredient substitution or shrinkage/yield adjustment.**
-Real catering math often accounts for cooking loss (e.g. onions losing 
-volume when caramelized). This API assumes raw-ingredient scaling only.
-
-**Single-recipe scope.**
-No multi-recipe menus, no shared pantry/inventory tracking across 
-recipes — each request is stateless and self-contained.
+ 
+**No volume-to-weight conversion.** Cups of flour → grams needs ingredient-specific density data (flour, sugar, and water all differ). This API only converts within a unit family — volume↔volume, weight↔weight. A density lookup table per ingredient would be the next step.
+ 
+**Unit conversions are data, not code.** Adding a new unit is a row in `unit_conversions`, not a redeploy.
+ 
+**Rounding fractions are fixed** (1/8, 1/4, 1/3, 1/2, 2/3, 3/4), matching US measuring tools. No metric-friendly rounding (nearest 5g).
+ 
+**No shrinkage/yield adjustment.** Scales raw ingredient quantities only — doesn't account for cooking loss.
+ 
+**Single-recipe scope.** No multi-recipe menus or shared inventory. Each request is stateless.

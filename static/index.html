@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="assets/style.css">
+  <title>calCOOKlator - Culinary Scaler & Cost Calculator</title>
+</head>
+<body>
+  <h1>calCOOKlator</h1>
+  <h2>🍳 calCOOKlator</h2>
+    <p class="subtitle">Culinary Scaler & Cost Calculator. Scale any recipe to a new serving size and see the updated cost.</p>
+  <label for="recipe">Recipe</label>
+    <select id="recipe"></select>
+  <label for="servings">Target servings</label>
+    <input type="number" id="servings" value="10" min="1">
+  <button onclick="calculate()">Scale & Calculate Cost</button>
+
+  <div id="error"></div>
+  <div id="result"></div>
+
+  <script>
+    // Change this to your backend API URL if different
+    const API_BASE = "http://localhost:8000";
+ 
+    async function loadRecipes() {
+      const res = await fetch(`${API_BASE}/recipes/`);
+      const recipes = await res.json();
+      const select = document.getElementById("recipe");
+      select.innerHTML = "";
+      recipes.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = `${r.name} (base: ${r.base_servings} servings)`;
+      select.appendChild(opt);
+    });
+    }
+ 
+    async function calculate() {
+      const errorBox = document.getElementById("error");
+      const resultBox = document.getElementById("result");
+      errorBox.style.display = "none";
+      resultBox.innerHTML = "";
+      const recipeId = parseInt(document.getElementById("recipe").value);
+      const servings = parseInt(document.getElementById("servings").value);
+      if (!servings || servings < 1) {
+        errorBox.textContent = "Please enter a valid number of servings.";
+        errorBox.style.display = "block";
+      return;
+    }
+      const btn = document.getElementById("calcBtn");
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.innerHTML = `Calculating<span class="spinner"></span>`;
+      try {
+        const res = await fetch(`${API_BASE}/recipes/scale-and-cost`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipe_id: recipeId, target_servings: servings })
+      });
+      if (!res.ok) throw new Error("Recipe not found or invalid request.");
+        const data = await res.json();
+        let rows = data.ingredients.map(ing =>
+          `<tr><td>${ing.name}</td><td>${ing.quantity} ${ing.unit}</td></tr>`
+        ).join("");
+        resultBox.innerHTML = `
+        <h3>${data.recipe_name} — ${data.target_servings} servings</h3>
+        <table>
+          <tr><th>Ingredient</th><th>Amount</th></tr>
+          ${rows}
+        </table>
+        <div class="cost-box">
+          Total cost: <strong>$${data.total_cost}</strong><br>
+          Cost per serving: <strong>$${data.cost_per_serving}</strong>
+        </div>
+      `;}
+      catch (err) {
+      errorBox.textContent = err.message;
+      errorBox.style.display = "block";}
+      finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+    }
+    loadRecipes();
+  </script>
+</body>
+<footer>
+  <p> &copy; 2026 calCOOKlator | <a href="https://drewhub88.github.io/AE-is-here/" target="_blank" rel="noopener">æ was here</a></p>
+</footer>
+</html>

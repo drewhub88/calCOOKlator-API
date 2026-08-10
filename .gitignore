@@ -1,2 +1,3 @@
 venv/
-seed.py
+__pycache__/
+*.db
