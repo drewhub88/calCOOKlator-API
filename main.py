@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from app.database import create_db_and_tables
 from app.routers.recipes import router as recipes_router
+from sqlmodel import Session, select
+from app.database import engine
+from app.models.models import Recipe
+from seed import seed
 
 app = FastAPI(title="calCooklator", version="1.0.0")
 
@@ -14,6 +18,11 @@ app.include_router(recipes_router)
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+
+    with Session(engine) as session:
+        existing = session.exec(select(Recipe)).first()
+        if existing is None:
+            seed()
 
 
 @app.get("/")

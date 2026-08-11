@@ -8,8 +8,7 @@
   <title>calCOOKlator - Culinary Scaler & Cost Calculator</title>
 </head>
 <body>
-  <h1>calCOOKlator</h1>
-  <h2>🍳 calCOOKlator</h2>
+  <h1>🍳 calCOOKlator</h1>
     <p class="subtitle">Culinary Scaler & Cost Calculator. Scale any recipe to a new serving size and see the updated cost.</p>
   <label for="recipe">Recipe</label>
     <select id="recipe"></select>
@@ -22,6 +21,7 @@
 
   <script>
     // Change this to your backend API URL if different
+    //if local change to: "http://localhost:8000";
     const API_BASE = "calcooklator-api-production.up.railway.app";
  
     async function loadRecipes() {

@@ -8,8 +8,8 @@ Scaling a recipe for 4 people up to 150 for a catering order gets messy fast: 16
 
 ## 🚀 Live Demo
  
-- **Try it:** `<your-render-url>/static/index.html`
-- **API docs:** `<your-render-url>/docs`
+- **Try it:** `https://calcooklator-api-production.up.railway.app/static/index.html`
+- **API docs:** `https://calcooklator-api-production.up.railway.app/docs`
 
 ## About This Project
  
@@ -26,9 +26,8 @@ A portfolio project covering API design, data modeling, and edge cases that actu
  
 FastAPI + SQLModel (SQLite for dev, swappable to Postgres) + Pydantic for validation. Deployed on Render.
 
----
 ## Architecture
- 
+
 ```
 /app
   /models     -> database table definitions
@@ -38,7 +37,6 @@ FastAPI + SQLModel (SQLite for dev, swappable to Postgres) + Pydantic for valida
 database.py
 main.py
 ```
---- 
 
 ## Data Model
  
