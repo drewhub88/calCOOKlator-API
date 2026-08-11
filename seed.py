@@ -1,7 +1,6 @@
 from sqlmodel import Session
 from app.database import engine, create_db_and_tables
 from app.models.models import Recipe, Ingredient, UnitConversion
-from test_conversion import session
 
 def seed():
     create_db_and_tables()
